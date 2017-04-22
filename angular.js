@@ -1,13 +1,19 @@
 const scope={};
 const watches=[];
 
-const evalInScope=(exp,scope)=>eval(
-   Object
-    .keys(scope)
-    .map(name=>`var ${name} = ${ JSON.stringify(scope[name]) }`)
-    .concat(exp)
-    .join(';')
-);
+const evalInScope=(exp,scope)=>{
+   try{
+    return eval(
+     Object
+      .keys(scope)
+      .map(name=>`var ${name} = ${ JSON.stringify(scope[name]) }`)
+      .concat(exp)
+      .join(';')
+  );
+} catch(e){
+  console.log(e);
+}
+}
 
 const run=(exp,scope)=>{
   try{
@@ -21,11 +27,32 @@ const directive = (name,controller)=>{
     .querySelectorAll(`[ ${name} ]`)
     .forEach(elem=>controller(elem, elem.attributes[name].value));
 }
-const watch = (cb)=>{
-  watches.push(cb);
+const watch = (exp,cb)=>{
+  watches.push({exp, cb, last:evalInScope(exp, scope)});
+}
+const digestOnce=()=>{
+  let changed = false;
+  watches.forEach(watch=>{
+    const {exp, cb, last} =  watch;
+    var curr = evalInScope(exp, scope)
+    if(curr !== last){
+      cb();
+      watch.last=curr;
+      changed=true;
+    }
+  });
+  return changed;
 }
 const digest=()=>{
-  watches.forEach(watch=>watch());
+  let changed = true;
+  let loops=10;
+  while(digestOnce() && loops){
+    loops--;
+  }
+  if(!loops){
+    console.log('too many digest loops');
+  }
+
 }
 directive('ng-model',(elem,key)=>{
   const update= ()=>{
@@ -34,20 +61,28 @@ directive('ng-model',(elem,key)=>{
   }
   elem.oninput= update;
   update();
-  watch(()=>{
+  watch(key,()=>{
     elem.value = scope[key];
   })
 });
 
-directive('ng-bind',(elem,key)=>{
+directive('ng-bind',(elem,exp)=>{
   const update=()=>{
-    elem.innerText =  scope[key];
+    elem.innerText =  evalInScope(exp,scope);
   }
-  watch(update)
+  watch(exp,update)
   update();
 })
 directive('ng-show',(elem,exp)=>{
-  watch(()=>{
+  watch(exp, ()=>{
     elem.style.display = evalInScope(exp,scope) ? 'inherit' : 'none';
   })
+})
+watch('age',()=>{
+  console.log('age: '+ scope.age );
+  scope.retirement = parseInt(scope.age) + 12;
+})
+watch('retirement',()=>{
+  console.log('retirement '+ scope.retirement);
+  scope.age = parseInt(scope.age)+5;
 })
