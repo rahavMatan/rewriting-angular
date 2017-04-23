@@ -7,21 +7,25 @@
   <div>
         <h2>re writing Angular</h2>
   </div>
-  age:<input ng-model="age" />
-  age:<input ng-model="age" />
-  gender:<input ng-model="gender" />
+  <form>
+    age:<input ng-model="age" />
+    age:<input ng-model="age" />
+    gender:<input ng-model="gender" />
+  </form>
+
   <br />
-  Age: <div ng-bind="age * 2">
+  Age: <span ng-bind="age * 2">
 
-  </div>
-  Gender: <div ng-bind="gender">
+  </span>
+  <br />
+  Gender: <span ng-bind="gender">
 
-  </div>
+  </span>
   <hr />
-  <div ng-show="age < 18">
-    is a minor!
+  <div>
+    <span ng-show="age<18">is  a minor</span><span ng-show="age>18">is an adult</span>
   </div>
 </body>
-<script src="angular.js"></script>
+
 <script src="index.js"></script>
 </html>

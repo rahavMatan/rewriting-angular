@@ -9,10 +9,10 @@ const evalInScope=(exp,scope)=>{
       .map(name=>`var ${name} = ${ JSON.stringify(scope[name]) }`)
       .concat(exp)
       .join(';')
-  );
-} catch(e){
-  console.log(e);
-}
+    );
+  } catch(e){
+    console.log(e);
+  }
 }
 
 const run=(exp,scope)=>{
